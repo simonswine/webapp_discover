@@ -92,6 +92,14 @@ class FileTree(object):
 
         self.dict = FileTree.file_list2dict(file_list)#
 
+    def __eq__(self, other):
+        return (
+            self.dict == other.dict
+        )
+
+    def __len__(self):
+        return FileTree.dict_count(self.dict)
+
 
     def check(self,path,ratio=0.7):
 
