@@ -3,6 +3,7 @@ __author__ = 'christian'
 import pyclbr
 import os
 import sys
+import json
 
 from webapp_discover.webapp import WebApp
 
@@ -95,9 +96,19 @@ class Explorer(object):
 
         return webapp_classes
 
-    def run(self, dir,level=5):
+    def detect(self,path,level,ratio):
 
-        for root in Explorer.walk_dirs(dir,level):
+        for root in Explorer.walk_dirs(path,level):
             for webapp in self.webapps:
-                if webapp.webapp_filetree.check(root) >= 0.7:
-                    print (root, webapp.webapp_name)
+                val = webapp.webapp_filetree.check(root)
+                if val >= ratio:
+                    yield {
+                        'path': root,
+                        'name': webapp.webapp_name,
+                        'score': val
+                    }
+
+    def run(self, path,level=5,ratio=0.8):
+
+        for result in self.detect(path,level=level,ratio=ratio):
+            print (result)
