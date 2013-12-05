@@ -106,6 +106,7 @@ class Explorer(object):
                         'path': root,
                         'name': webapp.webapp_name,
                         'version': webapp.get_version(root),
+                        'plugins': webapp.get_plugins(root),
                         'score': val
                     }
 

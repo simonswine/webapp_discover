@@ -16,4 +16,7 @@ class WebApp(object):
     def get_version(self,path):
         return None
 
+    def get_plugins(self, path):
+        return None
+
     pass

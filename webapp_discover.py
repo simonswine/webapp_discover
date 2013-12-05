@@ -66,7 +66,7 @@ def main():
 
 
     args = parser.parse_args()
-    print args
+    #print args
 
     discover_dir = args.path
     print("Running discovery in %s" % discover_dir)

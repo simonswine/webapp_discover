@@ -7,10 +7,10 @@ from webapp_discover.php_webapp import PhpWebApp
 
 RE_VERSION = re.compile("""\$wp_version\s*=\s*['"](\d+(\.\d+)+)['"]""")
 
+RE_PLUGIN_VERSION = re.compile("""Version:\s+(\d+(\.\d+)+)""")
+
 
 class WordpressWebApp(PhpWebApp):
-
-
     webapp_name = "Wordpress"
     webapp_files = [
         './index.php',
@@ -75,12 +75,68 @@ class WordpressWebApp(PhpWebApp):
         './xmlrpc.php',
     ]
 
-    def get_version(self,path):
+    def get_version(self, path):
 
         # Typo3 < 6.0
-        conf_path = os.path.join(path,'wp-includes/version.php')
+        conf_path = os.path.join(path, 'wp-includes/version.php')
         if os.path.exists(conf_path):
             cont = open(conf_path).read()
             m = RE_VERSION.search(cont)
             if m is not None:
                 return (m.group(1))
+
+    def get_plugins(self, path):
+
+        return self.get_installed_plugins(path)
+
+    def get_plugin_info(self,plugin_file):
+
+        content = open(plugin_file).readlines()
+
+        version = None
+
+        for line in content:
+            m = RE_PLUGIN_VERSION.search(line)
+            if m is not None:
+                version = m.group(1)
+                break
+
+
+        return {
+            'name' : os.path.basename(plugin_file).replace('.php',''),
+            'version' : version,
+        }
+        pass
+
+    def get_installed_plugins(self, path):
+
+        plugins = []
+
+        plugins_path = os.path.join(path, 'wp-content/plugins/')
+
+        if os.path.isdir(plugins_path):
+            for plugin in os.listdir(plugins_path):
+
+                if plugin in ['index.php']:
+                    continue
+
+                try:
+                    plugin_path = os.path.join(path,plugins_path,plugin)
+
+                    # Plugin dir
+                    if os.path.isdir(plugin_path):
+                        plugin_file = os.path.join(plugin_path,'%s.php' % plugin)
+                        if os.path.exists(plugin_file):
+                            plugins.append(self.get_plugin_info(plugin_file))
+
+                    # Plugin file
+                    if plugin.endswith('.php'):
+                        plugin_file = plugin_path
+                        if os.path.isfile(plugin_file):
+                            plugins.append(self.get_plugin_info(plugin_file))
+                except IOError:
+                    pass
+
+
+
+        return plugins
