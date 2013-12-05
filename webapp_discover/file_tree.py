@@ -111,6 +111,6 @@ class FileTree(object):
         FileTree.check_recurse(path,d)
 
 
-        return FileTree.dict_count(d)/len_d
+        return float(FileTree.dict_count(d))/float(len_d)
 
 
