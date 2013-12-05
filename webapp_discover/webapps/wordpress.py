@@ -1,8 +1,15 @@
 __author__ = 'christian'
 
+import os
+import re
+
 from webapp_discover.php_webapp import PhpWebApp
 
+RE_VERSION = re.compile("""\$wp_version\s*=\s*['"](\d+(\.\d+)+)['"]""")
+
+
 class WordpressWebApp(PhpWebApp):
+
 
     webapp_name = "Wordpress"
     webapp_files = [
@@ -68,6 +75,12 @@ class WordpressWebApp(PhpWebApp):
         './xmlrpc.php',
     ]
 
-    pass
+    def get_version(self,path):
 
-
+        # Typo3 < 6.0
+        conf_path = os.path.join(path,'wp-includes/version.php')
+        if os.path.exists(conf_path):
+            cont = open(conf_path).read()
+            m = RE_VERSION.search(cont)
+            if m is not None:
+                return (m.group(1))

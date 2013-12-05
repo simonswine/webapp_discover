@@ -105,10 +105,11 @@ class Explorer(object):
                     yield {
                         'path': root,
                         'name': webapp.webapp_name,
+                        'version': webapp.get_version(root),
                         'score': val
                     }
 
     def run(self, path,level=5,ratio=0.8):
 
         for result in self.detect(path,level=level,ratio=ratio):
-            print (result)
+            print (json.dumps(result,indent=4))

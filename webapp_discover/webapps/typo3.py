@@ -1,6 +1,13 @@
 __author__ = 'christian'
 
+import os
+import re
+
 from webapp_discover.php_webapp import PhpWebApp
+
+RE_VERSION_OLD = re.compile("""\$TYPO_VERSION\s+=\s+['"](\d+(\.\d+)+)['"]""")
+RE_VERSION = re.compile("""["']TYPO3_version["']\s*,\s*['"](\d+(\.\d+)+)['"]""")
+
 
 class Typo3WebApp(PhpWebApp):
 
@@ -556,4 +563,22 @@ class Typo3WebApp(PhpWebApp):
         './typo3/wizard_tsconfig.php',
         './uploads/index.html',
     ]
-    pass
+
+
+    def get_version(self,path):
+
+        # Typo3 < 6.0
+        conf_path = os.path.join(path,'t3lib/config_default.php')
+        if os.path.exists(conf_path):
+            cont = open(conf_path).read()
+            m = RE_VERSION_OLD.search(cont)
+            if m is not None:
+                return (m.group(1))
+
+        # Typo3 >= 6.0
+        conf_path = os.path.join(path,'typo3/sysext/core/Classes/Core/SystemEnvironmentBuilder.php')
+        if os.path.exists(conf_path):
+            cont = open(conf_path).read()
+            m = RE_VERSION.search(cont)
+            if m is not None:
+                return (m.group(1))

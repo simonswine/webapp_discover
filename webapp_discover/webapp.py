@@ -13,4 +13,7 @@ class WebApp(object):
         self.webapp_filetree = FileTree(self.webapp_files)
 
 
+    def get_version(self,path):
+        return None
+
     pass
