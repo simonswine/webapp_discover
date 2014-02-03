@@ -10,7 +10,6 @@ RE_VERSION = re.compile("""["']TYPO3_version["']\s*,\s*['"](\d+(\.\d+)+)['"]""")
 
 
 class Typo3WebApp(PhpWebApp):
-
     webapp_name = "Typo3"
     webapp_files = [
         './ChangeLog',
@@ -564,11 +563,191 @@ class Typo3WebApp(PhpWebApp):
         './uploads/index.html',
     ]
 
+    ## Source
+    #git log --tags --date-order --simplify-by-decoration --pretty="format:%ai %d" | perl -n -e'/(\d\d\d\d-\d\d-\d\d)[^\(]+\(TYPO3_(\d+)-(\d+)-(\d+)?(\)|,)/ && print " \"$2.$3.$4\": { \"date\": \"$1\"},\n"'
 
-    def get_version(self,path):
+    versions = {
+        '6.1.7': {'date': '2013-12-10'},
+        '6.0.12': {'date': '2013-12-10'},
+        '4.7.17': {'date': '2013-12-10'},
+        '4.5.32': {'date': '2013-12-10'},
+        '6.1.6': {'date': '2013-11-26'},
+        '6.0.11': {'date': '2013-11-26'},
+        '4.7.16': {'date': '2013-11-26'},
+        '4.5.31': {'date': '2013-11-26'},
+        '4.5.30': {'date': '2013-09-12'},
+        '4.7.15': {'date': '2013-09-12'},
+        '6.0.10': {'date': '2013-09-12'},
+        '6.1.5': {'date': '2013-09-12'},
+        '6.1.4': {'date': '2013-09-04'},
+        '6.0.9': {'date': '2013-09-04'},
+        '6.1.3': {'date': '2013-07-30'},
+        '6.0.8': {'date': '2013-07-30'},
+        '4.7.14': {'date': '2013-07-30'},
+        '4.5.29': {'date': '2013-07-30'},
+        '4.5.28': {'date': '2013-07-23'},
+        '4.7.13': {'date': '2013-07-23'},
+        '6.0.7': {'date': '2013-07-23'},
+        '6.1.2': {'date': '2013-07-23'},
+        '6.1.1': {'date': '2013-05-24'},
+        '6.0.6': {'date': '2013-05-24'},
+        '4.7.12': {'date': '2013-05-24'},
+        '4.5.27': {'date': '2013-05-24'},
+        '4.5.26': {'date': '2013-05-03'},
+        '4.7.11': {'date': '2013-05-03'},
+        '6.0.5': {'date': '2013-05-03'},
+        '6.1.0': {'date': '2013-04-30'},
+        '6.0.4': {'date': '2013-03-07'},
+        '4.7.10': {'date': '2013-03-07'},
+        '4.6.18': {'date': '2013-03-07'},
+        '4.5.25': {'date': '2013-03-07'},
+        '6.0.3': {'date': '2013-03-06'},
+        '4.7.9': {'date': '2013-03-06'},
+        '4.6.17': {'date': '2013-03-06'},
+        '4.5.24': {'date': '2013-03-06'},
+        '6.0.2': {'date': '2013-02-14'},
+        '4.7.8': {'date': '2013-02-14'},
+        '4.6.16': {'date': '2013-02-14'},
+        '4.5.23': {'date': '2013-02-14'},
+        '6.0.1': {'date': '2013-01-29'},
+        '6.0.0': {'date': '2012-11-27'},
+        '4.7.7': {'date': '2012-11-12'},
+        '4.6.15': {'date': '2012-11-12'},
+        '4.5.22': {'date': '2012-11-12'},
+        '4.7.6': {'date': '2012-11-08'},
+        '4.6.14': {'date': '2012-11-08'},
+        '4.5.21': {'date': '2012-11-08'},
+        '4.5.20': {'date': '2012-10-16'},
+        '4.6.13': {'date': '2012-10-16'},
+        '4.7.5': {'date': '2012-10-16'},
+        '4.7.4': {'date': '2012-08-15'},
+        '4.6.12': {'date': '2012-08-15'},
+        '4.5.19': {'date': '2012-08-15'},
+        '4.5.18': {'date': '2012-08-08'},
+        '4.6.11': {'date': '2012-08-08'},
+        '4.7.3': {'date': '2012-08-08'},
+        '4.7.2': {'date': '2012-07-04'},
+        '4.6.10': {'date': '2012-07-04'},
+        '4.5.17': {'date': '2012-07-04'},
+        '4.7.1': {'date': '2012-05-22'},
+        '4.6.9': {'date': '2012-05-22'},
+        '4.5.16': {'date': '2012-05-22'},
+        '4.7.0': {'date': '2012-04-23'},
+        '4.6.8': {'date': '2012-04-17'},
+        '4.5.15': {'date': '2012-04-17'},
+        '4.4.15': {'date': '2012-04-17'},
+        '4.6.7': {'date': '2012-03-28'},
+        '4.5.14': {'date': '2012-03-28'},
+        '4.4.14': {'date': '2012-03-28'},
+        '4.6.6': {'date': '2012-03-13'},
+        '4.5.13': {'date': '2012-03-13'},
+        '4.6.5': {'date': '2012-03-06'},
+        '4.5.12': {'date': '2012-03-06'},
+        '4.6.4': {'date': '2012-01-24'},
+        '4.5.11': {'date': '2012-01-24'},
+        '4.4.13': {'date': '2012-01-24'},
+        '4.6.3': {'date': '2011-12-20'},
+        '4.5.10': {'date': '2011-12-20'},
+        '4.6.2': {'date': '2011-12-16'},
+        '4.5.9': {'date': '2011-12-16'},
+        '4.4.12': {'date': '2011-11-22'},
+        '4.5.8': {'date': '2011-11-22'},
+        '4.6.1': {'date': '2011-11-22'},
+        '4.6.0': {'date': '2011-10-25'},
+        '4.5.7': {'date': '2011-10-18'},
+        '4.5.6': {'date': '2011-09-14'},
+        '4.4.11': {'date': '2011-09-14'},
+        '4.3.14': {'date': '2011-09-14'},
+        '4.5.5': {'date': '2011-08-16'},
+        '4.4.10': {'date': '2011-08-16'},
+        '4.3.13': {'date': '2011-08-16'},
+        '4.5.4': {'date': '2011-07-27'},
+        '4.4.9': {'date': '2011-07-27'},
+        '4.3.12': {'date': '2011-07-27'},
+        '4.4.8': {'date': '2011-05-24'},
+        '4.5.3': {'date': '2011-05-24'},
+        '4.5.2': {'date': '2011-02-25'},
+        '4.5.1': {'date': '2011-02-23'},
+        '4.4.7': {'date': '2011-02-23'},
+        '4.3.11': {'date': '2011-02-23'},
+        '4.5.0': {'date': '2011-01-26'},
+        '4.2.17': {'date': '2010-12-28'},
+        '4.3.10': {'date': '2010-12-28'},
+        '4.4.6': {'date': '2010-12-28'},
+        '4.4.5': {'date': '2010-12-16'},
+        '4.3.9': {'date': '2010-12-16'},
+        '4.2.16': {'date': '2010-12-16'},
+        '4.3.8': {'date': '2010-10-12'},
+        '4.3.7': {'date': '2010-10-06'},
+        '4.4.4': {'date': '2010-10-06'},
+        '4.2.15': {'date': '2010-10-06'},
+        '4.3.6': {'date': '2010-09-28'},
+        '4.4.3': {'date': '2010-09-28'},
+        '4.1.15': {'date': '2010-08-06'},
+        '4.2.14': {'date': '2010-08-06'},
+        '4.3.5': {'date': '2010-08-06'},
+        '4.4.2': {'date': '2010-08-06'},
+        '4.1.14': {'date': '2010-07-28'},
+        '4.2.13': {'date': '2010-07-28'},
+        '4.3.4': {'date': '2010-07-28'},
+        '4.4.1': {'date': '2010-07-28'},
+        '4.4.0': {'date': '2010-06-22'},
+        '4.3.3': {'date': '2010-04-09'},
+        '4.3.2': {'date': '2010-02-23'},
+        '4.2.12': {'date': '2010-02-23'},
+        '4.2.11': {'date': '2010-01-14'},
+        '4.3.1': {'date': '2010-01-14'},
+        '4.3.0': {'date': '2009-11-30'},
+        '4.2.10': {'date': '2009-10-22'},
+        '4.1.13': {'date': '2009-10-22'},
+        '4.2.9': {'date': '2009-09-28'},
+        '4.2.8': {'date': '2009-07-03'},
+        '4.1.12': {'date': '2009-07-03'},
+        '4.0.13': {'date': '2009-07-02'},
+        '4.2.7': {'date': '2009-07-02'},
+        '4.1.11': {'date': '2009-07-02'},
+        '4.2.6': {'date': '2009-02-10'},
+        '4.1.10': {'date': '2009-02-10'},
+        '4.0.12': {'date': '2009-02-10'},
+        '4.2.5': {'date': '2009-01-24'},
+        '4.1.9': {'date': '2009-01-24'},
+        '4.0.11': {'date': '2009-01-24'},
+        '4.2.4': {'date': '2009-01-20'},
+        '4.0.10': {'date': '2009-01-20'},
+        '4.1.8': {'date': '2009-01-20'},
+        '4.2.3': {'date': '2008-11-11'},
+        '4.2.2': {'date': '2008-10-06'},
+        '4.0.9': {'date': '2008-06-11'},
+        '4.1.7': {'date': '2008-06-11'},
+        '4.2.1': {'date': '2008-06-11'},
+        '4.2.0': {'date': '2008-05-24'},
+        '4.1.6': {'date': '2008-03-03'},
+        '4.1.5': {'date': '2007-12-14'},
+        '4.0.8': {'date': '2007-12-10'},
+        '4.1.4': {'date': '2007-12-10'},
+        '4.1.3': {'date': '2007-10-22'},
+        '4.0.7': {'date': '2007-07-16'},
+        '4.1.2': {'date': '2007-07-16'},
+        '4.0.6': {'date': '2007-04-02'},
+        '4.1.1': {'date': '2007-04-02'},
+        '4.1.0': {'date': '2007-03-06'},
+        '4.0.5': {'date': '2007-02-21'},
+        '4.0.4': {'date': '2007-01-11'},
+        '4.0.3': {'date': '2006-12-11'},
+        '4.0.2': {'date': '2006-09-24'},
+        '4.0.1': {'date': '2006-08-01'},
+        '4.0.0': {'date': '2006-04-07'},
+        '3.8.0': {'date': '2005-05-22'},
+        '3.7.1': {'date': '2005-05-21'},
+        '3.7.0': {'date': '2004-09-24'},
+        '3.6.2': {'date': '2004-07-12'},
+        '3.6.1': {'date': '2004-05-11'},
+    }
 
+
+    def get_version(self, path):
         # Typo3 < 6.0
-        conf_path = os.path.join(path,'t3lib/config_default.php')
+        conf_path = os.path.join(path, 't3lib/config_default.php')
         if os.path.exists(conf_path):
             cont = open(conf_path).read()
             m = RE_VERSION_OLD.search(cont)
@@ -576,7 +755,7 @@ class Typo3WebApp(PhpWebApp):
                 return (m.group(1))
 
         # Typo3 >= 6.0
-        conf_path = os.path.join(path,'typo3/sysext/core/Classes/Core/SystemEnvironmentBuilder.php')
+        conf_path = os.path.join(path, 'typo3/sysext/core/Classes/Core/SystemEnvironmentBuilder.php')
         if os.path.exists(conf_path):
             cont = open(conf_path).read()
             m = RE_VERSION.search(cont)
@@ -585,8 +764,7 @@ class Typo3WebApp(PhpWebApp):
 
     # gets activated typo3 extensions from localconf.php
     def get_activated_plugins(self, path):
-
-        conf_path = os.path.join(path,'typo3conf/localconf.php')
+        conf_path = os.path.join(path, 'typo3conf/localconf.php')
         if os.path.exists(conf_path):
 
             php_code = open(conf_path).read()
@@ -600,7 +778,7 @@ class Typo3WebApp(PhpWebApp):
 
             mods = self.exec_php_code(php_code)
             if mods != None:
-                ret_val={}
+                ret_val = {}
                 for mod in mods.split(','):
                     ret_val[mod] = {}
                 return ret_val
@@ -610,23 +788,22 @@ class Typo3WebApp(PhpWebApp):
 
     # fetches the installed plugins and theirs versions
     def get_installed_plugins(self, path):
-
         # return dict with extensions
         ret_val = {}
 
         # Path to extension dir
-        exts_path = os.path.join(path,'typo3conf/ext/')
+        exts_path = os.path.join(path, 'typo3conf/ext/')
 
         # If is dir
         if os.path.isdir(exts_path):
             for ext in os.listdir(exts_path):
-                ext_path = os.path.join(exts_path,ext)
+                ext_path = os.path.join(exts_path, ext)
 
                 # Skip files
                 if not os.path.isdir(ext_path):
                     continue
 
-                conf_path = os.path.join(ext_path,'ext_emconf.php')
+                conf_path = os.path.join(ext_path, 'ext_emconf.php')
                 if os.path.isfile(conf_path):
                     php_code = open(conf_path).read()
 
@@ -639,17 +816,16 @@ class Typo3WebApp(PhpWebApp):
 
                     version = self.exec_php_code(php_code)
 
-                ret_val[ext]={}
+                ret_val[ext] = {}
 
                 if version != None:
-                    ret_val[ext]['version']=version.strip()
+                    ret_val[ext]['version'] = version.strip()
 
         return ret_val
 
 
     # return active plugins and their version
     def get_plugins(self, path):
-
         # TODO Plugin Detection doesn't work on typo3 > 6.0
 
         # Activated Plugins list
@@ -664,7 +840,7 @@ class Typo3WebApp(PhpWebApp):
         # Output only active plugins as list of plugin dicts
         for plugin in installed_plugins.keys():
             if plugin in active_plugins:
-                plugin_dict = {'name' : plugin}
+                plugin_dict = {'name': plugin}
                 plugin_dict.update(installed_plugins[plugin])
                 ret_val.append(plugin_dict)
 
