@@ -114,5 +114,9 @@ class Explorer(object):
 
     def run(self, path,level=5,ratio=0.8):
 
+        ret_val={'webapps':[]}
+
         for result in self.detect(path,level=level,ratio=ratio):
-            print (json.dumps(result,indent=4))
+            ret_val['webapps'].append(result)
+
+        print (json.dumps(ret_val,indent=4))

@@ -69,7 +69,7 @@ def main():
     #print args
 
     discover_dir = args.path
-    print("Running discovery in %s" % discover_dir)
+    print >> sys.stderr, "Running discovery in %s" % discover_dir
 
     expl = webapp_discover.Explorer()
     expl.run(discover_dir,ratio=args.ratio,level=args.depth)
