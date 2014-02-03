@@ -1,4 +1,5 @@
-__author__ = 'christian'
+__author__ = 'Christian Simon'
+
 
 from webapp_discover.file_tree import FileTree
 

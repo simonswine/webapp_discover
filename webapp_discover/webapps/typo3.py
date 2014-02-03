@@ -582,3 +582,88 @@ class Typo3WebApp(PhpWebApp):
             m = RE_VERSION.search(cont)
             if m is not None:
                 return (m.group(1))
+
+    # gets activated typo3 extensions from localconf.php
+    def get_activated_plugins(self, path):
+
+        conf_path = os.path.join(path,'typo3conf/localconf.php')
+        if os.path.exists(conf_path):
+
+            php_code = open(conf_path).read()
+
+            # Modify the PHP Code to output infos
+            php_code = self.php_change_code(
+                php_code,
+                prepend="define('TYPO3_MODE',1);",
+                append="echo $TYPO3_CONF_VARS['EXT']['extList'];"
+            )
+
+            mods = self.exec_php_code(php_code)
+            if mods != None:
+                ret_val={}
+                for mod in mods.split(','):
+                    ret_val[mod] = {}
+                return ret_val
+
+        return {}
+
+
+    # fetches the installed plugins and theirs versions
+    def get_installed_plugins(self, path):
+
+        # return dict with extensions
+        ret_val = {}
+
+        # Path to extension dir
+        exts_path = os.path.join(path,'typo3conf/ext/')
+
+        # If is dir
+        if os.path.isdir(exts_path):
+            for ext in os.listdir(exts_path):
+                ext_path = os.path.join(exts_path,ext)
+
+                # Skip files
+                if not os.path.isdir(ext_path):
+                    continue
+
+                conf_path = os.path.join(ext_path,'ext_emconf.php')
+                if os.path.isfile(conf_path):
+                    php_code = open(conf_path).read()
+
+                    # Modify the PHP Code to output infos
+                    php_code = self.php_change_code(
+                        php_code,
+                        prepend="$_EXTKEY = 0;",
+                        append="echo $EM_CONF[0]['version'];"
+                    )
+
+                    version = self.exec_php_code(php_code)
+
+                ret_val[ext]={}
+
+                if version != None:
+                    ret_val[ext]['version']=version.strip()
+
+        return ret_val
+
+
+    # return active plugins and their version
+    def get_plugins(self, path):
+
+        # Activated Plugins list
+        active_plugins = self.get_activated_plugins(path).keys()
+
+        # return dictionariy
+        ret_val = []
+
+        # installed plugins dict
+        installed_plugins = self.get_installed_plugins(path)
+
+        # Output only active plugins as list of plugin dicts
+        for plugin in installed_plugins.keys():
+            if plugin in active_plugins:
+                plugin_dict = {'name' : plugin}
+                plugin_dict.update(installed_plugins[plugin])
+                ret_val.append(plugin_dict)
+
+        return ret_val
