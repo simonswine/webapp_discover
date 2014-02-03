@@ -26,19 +26,21 @@ class Explorer(object):
 
         ret_val = []
 
-        for name in os.listdir(path):
-            # build path
-            npath = os.path.join(path, name)
+        try:
+            for name in os.listdir(path):
+                # build path
+                npath = os.path.join(path, name)
 
-            # am i a dir?
-            if os.path.isdir(npath):
-                ret_val += Explorer.walk_dirs(npath,next_level)
+                # am i a dir?
+                if os.path.isdir(npath):
+                    ret_val += Explorer.walk_dirs(npath,next_level)
 
-        ret_val.append(path)
+            ret_val.append(path)
+        except OSError:
+            pass
+
 
         return ret_val
-
-
 
 
     def __init__(self):
