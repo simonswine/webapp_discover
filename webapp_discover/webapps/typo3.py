@@ -650,6 +650,8 @@ class Typo3WebApp(PhpWebApp):
     # return active plugins and their version
     def get_plugins(self, path):
 
+        # TODO Plugin Detection doesn't work on typo3 > 6.0
+
         # Activated Plugins list
         active_plugins = self.get_activated_plugins(path).keys()
 

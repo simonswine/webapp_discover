@@ -77,7 +77,6 @@ class WordpressWebApp(PhpWebApp):
 
     def get_version(self, path):
 
-        # Typo3 < 6.0
         conf_path = os.path.join(path, 'wp-includes/version.php')
         if os.path.exists(conf_path):
             cont = open(conf_path).read()
