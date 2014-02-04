@@ -112,6 +112,13 @@ class Explorer(object):
                         'score': val
                     }
 
+    def get_webapp_per_name(self,name):
+        for webapp in self.webapps:
+            if webapp.webapp_name.lower() == name.lower():
+                return webapp
+        return None
+
+
     def run(self, path,level=5,ratio=0.8):
 
         ret_val={'webapps':[]}
