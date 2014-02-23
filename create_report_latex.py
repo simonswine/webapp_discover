@@ -9,6 +9,8 @@ import copy
 # Load webapp_discover env
 WEB_APP_DISC = webapp_discover.Explorer()
 
+DISCOVERY_DATE=datetime.date(2014, 2, 4)
+
 
 # Loads webapps from json result files
 def load_input(files):
@@ -38,7 +40,7 @@ def get_age_of_webapps(webapps,sample_in_years=float(1.0/6.0)):
             continue
 
         # calc diff in years
-        age = float((datetime.date.today() - release_date).days)/365.25
+        age = float((DISCOVERY_DATE - release_date).days)/365.25
 
         # Add to dict
         if age not in webapps_per_age.keys():
@@ -129,7 +131,78 @@ def get_colors_per_version(versions,name=None):
     return ret_val
 
 
+def get_app_distribution(webapps):
 
+    count_per_app = {}
+
+    for webapp in webapps:
+        try:
+            count_per_app[webapp['name']] += 1
+        except KeyError:
+            count_per_app[webapp['name']] = 1
+
+    innen_kreis = 1.2
+    aussen_kreis = 2.4
+    abstand = 1
+
+    ret_val =(
+        "\\definecolor{lmugreen}{cmyk}{1,0,0.95,0.25}\n"
+        "\\begin{tikzpicture}\n"
+    )
+
+    summe=len(webapps)
+    start = 0.0
+    color_version = ['magenta','blue','red','lmugreen','orange','violet']
+
+    for app in count_per_app:
+        ende = start + ((360.0/float(summe)) * float(count_per_app[app]))
+        # Kreis Sektor  \draw[fill=\farbe,draw=none] (0,0) -- (\anfang:2cm) arc (\anfang:\ende:2cm);
+        ret_val += "    \\draw[fill=%(color)s,draw=none] (0,0) -- (%(start)f:%(radius)fcm) arc (%(start)f:%(ende)f:%(radius)fcm);\n" % {
+            'start' : start+abstand,
+            'ende' : ende-abstand,
+            'radius' : aussen_kreis,
+            'color' : color_version.pop(),
+        }
+
+        winkel_label_pos = (ende+start)/2.0
+        anchor_label="tip"
+
+        if winkel_label_pos >= 337.5 and winkel_label_pos < 22.5:
+            anchor_label='west'
+        elif winkel_label_pos >= 22.5 and winkel_label_pos < 67.6:
+            anchor_label='north west'
+        elif winkel_label_pos >= 67.5 and winkel_label_pos < 112.5:
+            anchor_label='north'
+        elif winkel_label_pos >= 112.5 and winkel_label_pos < 157.5:
+            anchor_label='north east'
+        elif winkel_label_pos >= 157.5 and winkel_label_pos < 202.5:
+            anchor_label='east'
+        elif winkel_label_pos >= 202.5 and winkel_label_pos < 247.5:
+            anchor_label='south east'
+        elif winkel_label_pos >= 247.5 and winkel_label_pos < 292.5:
+            anchor_label='south'
+        elif winkel_label_pos >= 292.5 and winkel_label_pos < 337.5:
+            anchor_label='south west'
+
+        # Beschriftung
+        ret_val += "    \\node[anchor=%(anchor)s] at (%(winkel)f:%(radius)fcm) {\\footnotesize\\emph{%(version)s} (%(count)d)};\n" % {
+            'winkel' : winkel_label_pos,
+            'radius' : aussen_kreis+0.5,
+            'version' : app,
+            'count' : count_per_app[app],
+            'anchor': anchor_label,
+        }
+
+
+        start = ende
+
+
+    ret_val +=(
+        "    \\draw[fill=white,draw=none] (0,0) circle (%fcm);\n"
+        "\\end{tikzpicture}\n"
+    ) % innen_kreis
+
+    return ret_val
 
 
 def get_version_distribution(webapps,name):
@@ -241,6 +314,10 @@ def main():
         f.close()
         print webapp
 
+    # Generate app distribution per app
+    f=open('webapp_count_per_app.tex','w')
+    f.write(get_app_distribution(webapps))
+    f.close()
 
 
 
