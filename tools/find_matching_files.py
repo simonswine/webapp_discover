@@ -16,8 +16,6 @@ def list_file_tree(path):
             yield os.path.relpath(os.path.join(root,f),absolute_path)
 
 
-
-
 def main():
 
     fileset_list = []

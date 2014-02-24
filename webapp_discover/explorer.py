@@ -1,28 +1,25 @@
+# -*- coding: utf-8 -*
 __author__ = 'christian'
 
 import pyclbr
 import os
-import sys
 import json
 
 from webapp_discover.webapp import WebApp
 
 
 class Explorer(object):
-
     webapps_directory = './webapps'
 
-
     @classmethod
-    def walk_dirs(cls,path,level=None):
+    def walk_dirs(cls, path, level=None):
 
         if level > 0:
-            next_level = level -1
+            next_level = level - 1
         elif level <= 0:
             return []
         else:
             next_level = None
-
 
         ret_val = []
 
@@ -33,30 +30,29 @@ class Explorer(object):
 
                 # am i a dir?
                 if os.path.isdir(npath):
-                    ret_val += Explorer.walk_dirs(npath,next_level)
+                    ret_val += Explorer.walk_dirs(npath, next_level)
 
             ret_val.append(path)
         except OSError:
             pass
 
-
         return ret_val
-
 
     def __init__(self):
 
         # Initialize webapp classes
         self.webapps = self.__init_webapps()
 
+    # Lade Definitionen von Webapps
     def __init_webapps(self):
 
-        # Webapp class store
+        # Return value
         webapp_classes = []
 
         # Root dir of module
         root_dir = os.path.dirname(os.path.realpath(__file__))
 
-        # Dir for webapp modules
+        # Verzeichnis für Module
         webapps_dir = os.path.abspath(
             os.path.join(
                 root_dir,
@@ -64,66 +60,77 @@ class Explorer(object):
             )
         )
 
-        # Load webapps definition
+        # Lese Definitionen für Webapp-Module
         for f in os.listdir(os.path.abspath(webapps_dir)):
 
-            # split extension
-            module_name, ext = os.path.splitext(f)  # Handles no-extension files, etc.
+            # Trenne in Name und Erweiterung
+            module_name, ext = os.path.splitext(f)
 
-            # only not hidden python files
-            if ext == '.py' and not module_name.startswith("__"):  # Important, ignore .pyc/other files.
-                #TODO LOG print('imported module: %s' % (module_name))
+            # Nur *.py Dateien als Module lesen
+            if ext == '.py' and not module_name.startswith("__"):
+                # Lese Modul
                 module_classes = pyclbr.readmodule(
                     module_name,
                     path=[webapps_dir]
                 )
 
-                # loop through classes
+                # Schleife über Klassen
                 for module_class in module_classes.keys():
-                    # check if class from module
+                    # Prüfe ob Klasse vom entsprechende Modul ist
                     if module_classes[module_class].module == module_name:
 
-                        # Get module webapps
-                        module_webapps = __import__('webapp_discover.webapps', fromlist=[module_name], level=0)
+                        # Lade Modul
+                        module_webapps = __import__(
+                            'webapp_discover.webapps',
+                            fromlist=[module_name],
+                            level=0
+                        )
 
-                        # Get module instance
+                        # Hole Modul-Instanz
                         module_instance = getattr(module_webapps, module_name)
 
-                        # Get class instance
+                        # Hole Klassen-Instanz
                         class_instance = getattr(module_instance, module_class)
 
-                        # check if class is subclass of Webapp
+                        # Prüfe ob die jeweilige Klasse Unterklasse von
+                        # Webapp ist
                         if issubclass(class_instance, WebApp):
                             webapp_classes.append(class_instance())
 
         return webapp_classes
 
-    def detect(self,path,level,ratio):
+    # Durchsuche Pfad  path bis zur Tiefe level mit dem Schwellwert ratio
+    def detect(self, path, level, ratio):
 
-        for root in Explorer.walk_dirs(path,level):
+        # Schleife über Verzeichnisse
+        for root in Explorer.walk_dirs(path, level):
             for webapp in self.webapps:
+                # Schleife über Webanwendungen
                 val = webapp.webapp_filetree.check(root)
+
+                # Nur wenn Schwellwert überschritten
                 if val >= ratio:
                     yield {
                         'path': root,
                         'name': webapp.webapp_name,
+                        # Bestimme Version
                         'version': webapp.get_version(root),
+                        # Finde Plugins der Webapp
                         'plugins': webapp.get_plugins(root),
                         'score': val
                     }
 
-    def get_webapp_per_name(self,name):
+    def get_webapp_per_name(self, name):
         for webapp in self.webapps:
             if webapp.webapp_name.lower() == name.lower():
                 return webapp
         return None
 
+    def run(self, path, level=5, ratio=0.8):
 
-    def run(self, path,level=5,ratio=0.8):
+        ret_val = {'webapps': []}
 
-        ret_val={'webapps':[]}
-
-        for result in self.detect(path,level=level,ratio=ratio):
+        for result in self.detect(path, level=level, ratio=ratio):
             ret_val['webapps'].append(result)
 
-        print (json.dumps(ret_val,indent=4))
+        print(json.dumps(ret_val, indent=4))
